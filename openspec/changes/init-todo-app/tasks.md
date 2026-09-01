@@ -1,0 +1,41 @@
+# Tasks: Initial Flutter To-Do Application (`init-todo-app`)
+
+- [x] 1. Scaffold project structure & dependencies <!-- id: 1-scaffold -->
+  - [x] 1.1 Create `pubspec.yaml` with required dependencies (`provider`, `shared_preferences`, `intl`, `uuid`, etc.)
+  - [x] 1.2 Setup Linux desktop runner configuration (`linux/`)
+  - [x] 1.3 Setup Android runner configuration (`android/`)
+- [x] 2. Core Data Models & JSON Serialization <!-- id: 2-models -->
+  - [x] 2.1 Implement `Category` model with `toJson()` and `fromJson()` (`lib/models/category.dart`)
+  - [x] 2.2 Implement `TodoItem` model with `toJson()` and `fromJson()` (`lib/models/todo_item.dart`)
+  - [x] 2.3 Implement `AppData` root schema with validation & versioning (`lib/models/app_data.dart`)
+  - [x] 2.4 Add model unit tests in `test/models/app_data_test.dart`
+- [x] 3. Services & Persistence Layer <!-- id: 3-services -->
+  - [x] 3.1 Implement `StorageService` for local persistence (`lib/services/storage_service.dart`)
+  - [x] 3.2 Implement `ClipboardService` with JSON schema validator (`lib/services/clipboard_service.dart`)
+  - [x] 3.3 Add unit tests in `test/services/clipboard_service_test.dart`
+- [x] 4. State Management (`TodoController`) <!-- id: 4-controller -->
+  - [x] 4.1 Implement category CRUD & reordering methods
+  - [x] 4.2 Implement active task CRUD, drag-and-drop reordering, and toggle completion
+  - [x] 4.3 Implement completed task reordering, restore to active, and permanent deletion
+  - [x] 4.4 Implement multi-selection state and batch operations
+  - [x] 4.5 Implement import/export operations (Replace vs Merge)
+  - [x] 4.6 Add controller unit tests in `test/controllers/todo_controller_test.dart`
+- [x] 5. User Interface - Theme & Categories <!-- id: 5-ui-categories -->
+  - [x] 5.1 Implement Material 3 Light/Dark theme configuration (`lib/views/theme/app_theme.dart`)
+  - [x] 5.2 Implement Category card widget & grid screen (`lib/views/categories/categories_screen.dart`)
+  - [x] 5.3 Implement Category creation & editing dialog (`lib/views/categories/category_dialog.dart`)
+- [x] 6. User Interface - Active Tasks Hub & Drag & Drop <!-- id: 6-ui-active-tasks -->
+  - [x] 6.1 Implement `CategoryTasksScreen` hub with tab navigation (`lib/views/tasks/category_tasks_screen.dart`)
+  - [x] 6.2 Implement `ActiveTasksView` with `ReorderableListView` and custom drag handles (`lib/views/tasks/active_tasks_view.dart`)
+  - [x] 6.3 Implement Task creation & editing dialog/sheet (`lib/views/tasks/task_dialog.dart`)
+  - [x] 6.4 Implement dynamic contextual Multi-Select Action Bar (`lib/views/tasks/selection_action_bar.dart`)
+- [x] 7. User Interface - Completed Tasks Section <!-- id: 7-ui-completed-tasks -->
+  - [x] 7.1 Implement `CompletedTasksView` with `ReorderableListView` (`lib/views/tasks/completed_tasks_view.dart`)
+  - [x] 7.2 Implement single & batch restore (send back to active)
+  - [x] 7.3 Implement single & batch permanent deletion
+- [x] 8. User Interface - Clipboard Import & Export <!-- id: 8-ui-import-export -->
+  - [x] 8.1 Implement Export tab with JSON viewer & Copy to Clipboard button (`lib/views/import_export/import_export_dialog.dart`)
+  - [x] 8.2 Implement Import tab with Paste from Clipboard, schema validation badge, and Replace/Merge selector
+- [x] 9. Verification & Quality Assurance <!-- id: 9-verification -->
+  - [x] 9.1 Create automated test suite for models, services, and controller
+  - [x] 9.2 Validate responsive layout and interactions for Linux desktop and Android
