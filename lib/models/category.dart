@@ -54,7 +54,7 @@ class Category {
     return Category(
       id: json['id'] as String,
       name: json['name'] as String,
-      colorValue: json['colorValue'] as int? ?? 0xFF3F51B5,
+      colorValue: json['colorValue'] as int? ?? 0xFFF59E0B,
       iconCodePoint: json['iconCodePoint'] as int? ?? 0xe24a, // Icons.folder_rounded
       order: json['order'] as int? ?? 0,
       createdAt: json['createdAt'] != null

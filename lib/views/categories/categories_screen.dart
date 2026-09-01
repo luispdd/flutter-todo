@@ -116,11 +116,12 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.check_box_rounded, color: Color(0xFF3F51B5), size: 28),
-            SizedBox(width: 10),
-            Text(
+            Icon(Icons.check_box_rounded,
+                color: Theme.of(context).colorScheme.primary, size: 28),
+            const SizedBox(width: 10),
+            const Text(
               'Tasks & Categories',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
             ),

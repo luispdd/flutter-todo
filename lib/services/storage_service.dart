@@ -56,7 +56,7 @@ class StorageService {
       Category(
         id: personalCatId,
         name: 'Personal',
-        colorValue: Colors.indigo.value,
+        colorValue: 0xFFF59E0B, // Amber
         iconCodePoint: Icons.person_rounded.codePoint,
         order: 0,
         createdAt: now,
@@ -64,7 +64,7 @@ class StorageService {
       Category(
         id: workCatId,
         name: 'Work',
-        colorValue: Colors.teal.value,
+        colorValue: 0xFF0D9488, // Teal
         iconCodePoint: Icons.work_rounded.codePoint,
         order: 1,
         createdAt: now,
@@ -72,7 +72,7 @@ class StorageService {
       Category(
         id: shoppingCatId,
         name: 'Shopping & Errands',
-        colorValue: Colors.amber.shade800.value,
+        colorValue: 0xFFD97706, // Amber Dark
         iconCodePoint: Icons.shopping_cart_rounded.codePoint,
         order: 2,
         createdAt: now,
