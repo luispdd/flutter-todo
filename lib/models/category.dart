@@ -17,9 +17,27 @@ class Category {
     required this.createdAt,
   });
 
+  static const List<IconData> defaultIcons = [
+    Icons.folder_rounded,
+    Icons.person_rounded,
+    Icons.work_rounded,
+    Icons.shopping_cart_rounded,
+    Icons.fitness_center_rounded,
+    Icons.school_rounded,
+    Icons.home_rounded,
+    Icons.favorite_rounded,
+    Icons.code_rounded,
+    Icons.flight_takeoff_rounded,
+    Icons.book_rounded,
+    Icons.star_rounded,
+  ];
+
+  static final Map<int, IconData> _iconMap = {
+    for (final icon in defaultIcons) icon.codePoint: icon,
+  };
+
   Color get color => Color(colorValue);
-  // ignore: non_const_argument_for_const_parameter
-  IconData get icon => IconData(iconCodePoint, fontFamily: 'MaterialIcons');
+  IconData get icon => _iconMap[iconCodePoint] ?? Icons.folder_rounded;
 
   Category copyWith({
     String? id,
