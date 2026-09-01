@@ -15,7 +15,6 @@ class ActiveTasksView extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = context.watch<TodoController>();
     final activeTodos = controller.getActiveTodos(category.id);
-    final isSelectionMode = controller.isSelectionActive(false);
 
     if (activeTodos.isEmpty) {
       return Center(
@@ -78,28 +77,17 @@ class ActiveTasksView extends StatelessWidget {
               controller.toggleSelection(item.id, isCompleted: false);
             },
             onTap: () {
-              if (isSelectionMode) {
-                controller.toggleSelection(item.id, isCompleted: false);
-              } else {
-                _editTask(context, controller, item);
-              }
+              controller.toggleSelection(item.id, isCompleted: false);
             },
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               child: Row(
                 children: [
-                  if (isSelectionMode)
-                    Checkbox(
-                      value: isSelected,
-                      onChanged: (_) =>
-                          controller.toggleSelection(item.id, isCompleted: false),
-                    )
-                  else
-                    IconButton(
-                      tooltip: 'Mark Complete',
-                      icon: const Icon(Icons.circle_outlined, color: Colors.grey),
-                      onPressed: () => controller.toggleTodoComplete(item.id),
-                    ),
+                  Checkbox(
+                    value: isSelected,
+                    onChanged: (_) =>
+                        controller.toggleSelection(item.id, isCompleted: false),
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Column(

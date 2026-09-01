@@ -16,96 +16,133 @@ class SelectionActionBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = context.watch<TodoController>();
     final count = controller.getSelectionCount(isCompleted);
-    final totalItems = isCompleted
-        ? controller.getCompletedCount(categoryId)
-        : controller.getActiveCount(categoryId);
-    final allSelected = count > 0 && count == totalItems;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primaryContainer,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          IconButton(
-            tooltip: 'Clear Selection',
-            icon: const Icon(Icons.close_rounded),
-            onPressed: () => controller.clearSelection(isCompleted: isCompleted),
+    if (count == 0) {
+      return const SizedBox.shrink();
+    }
+
+    if (!isCompleted) {
+      return SafeArea(
+        top: false,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.08),
+                offset: const Offset(0, -2),
+                blurRadius: 8,
+              ),
+            ],
           ),
-          const SizedBox(width: 8),
-          Text(
-            '$count selected',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.onPrimaryContainer,
-            ),
-          ),
-          const Spacer(),
-          TextButton.icon(
-            icon: Icon(
-              allSelected ? Icons.deselect_rounded : Icons.select_all_rounded,
-              size: 18,
-            ),
-            label: Text(allSelected ? 'Deselect All' : 'Select All'),
-            onPressed: () => controller.selectAll(categoryId, isCompleted: isCompleted),
-          ),
-          const SizedBox(width: 8),
-          if (!isCompleted) ...[
-            FilledButton.icon(
-              icon: const Icon(Icons.check_rounded, size: 18),
-              label: const Text('Complete'),
+          child: SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: FilledButton.icon(
+              icon: const Icon(Icons.check_rounded),
+              label: Text(
+                count > 1 ? 'Complete ($count)' : 'Complete',
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
               style: FilledButton.styleFrom(
                 backgroundColor: Colors.green.shade700,
                 foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               onPressed: () => controller.batchCompleteSelected(),
             ),
-            const SizedBox(width: 8),
-          ] else ...[
-            FilledButton.icon(
-              icon: const Icon(Icons.replay_rounded, size: 18),
-              label: const Text('Restore to Active'),
-              style: FilledButton.styleFrom(
-                backgroundColor: Colors.indigo.shade700,
-                foregroundColor: Colors.white,
-              ),
-              onPressed: () => controller.batchRestoreSelected(),
-            ),
-            const SizedBox(width: 8),
-          ],
-          IconButton(
-            tooltip: isCompleted ? 'Delete Permanently' : 'Delete Selected',
-            icon: const Icon(Icons.delete_outline_rounded, color: Colors.red),
-            onPressed: () async {
-              final confirmed = await showDialog<bool>(
-                context: context,
-                builder: (ctx) => AlertDialog(
-                  title: Text(isCompleted ? 'Delete Permanently?' : 'Delete Selected Tasks?'),
-                  content: Text(
-                    'Are you sure you want to remove $count selected task(s)? This action cannot be undone.',
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.of(ctx).pop(false),
-                      child: const Text('Cancel'),
-                    ),
-                    FilledButton(
-                      style: FilledButton.styleFrom(backgroundColor: Colors.red),
-                      onPressed: () => Navigator.of(ctx).pop(true),
-                      child: const Text('Delete'),
-                    ),
-                  ],
-                ),
-              );
-
-              if (confirmed == true) {
-                await controller.batchDeleteSelected(isCompleted: isCompleted);
-              }
-            },
           ),
-        ],
+        ),
+      );
+    }
+
+    return SafeArea(
+      top: false,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              offset: const Offset(0, -2),
+              blurRadius: 8,
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: SizedBox(
+                height: 48,
+                child: FilledButton.icon(
+                  icon: const Icon(Icons.replay_rounded),
+                  label: Text(
+                    count > 1 ? 'Reactivate ($count)' : 'Reactivate',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: Colors.indigo.shade700,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: () => controller.batchRestoreSelected(),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: SizedBox(
+                height: 48,
+                child: FilledButton.icon(
+                  icon: const Icon(Icons.delete_forever_rounded),
+                  label: Text(
+                    count > 1 ? 'Delete ($count)' : 'Delete',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: Colors.red.shade700,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: () async {
+                    final confirmed = await showDialog<bool>(
+                      context: context,
+                      builder: (ctx) => AlertDialog(
+                        title: const Text('Delete Permanently?'),
+                        content: Text(
+                          'Are you sure you want to permanently remove $count selected task(s)? This action cannot be undone.',
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(ctx).pop(false),
+                            child: const Text('Cancel'),
+                          ),
+                          FilledButton(
+                            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+                            onPressed: () => Navigator.of(ctx).pop(true),
+                            child: const Text('Delete'),
+                          ),
+                        ],
+                      ),
+                    );
+
+                    if (confirmed == true) {
+                      await controller.batchDeleteSelected(isCompleted: true);
+                    }
+                  },
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

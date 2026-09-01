@@ -149,32 +149,26 @@ class _CategoryTasksScreenState extends State<CategoryTasksScreen>
           ],
         ),
       ),
-      body: Column(
+      body: TabBarView(
+        controller: _tabController,
         children: [
-          if (isSelectionMode)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: SelectionActionBar(
-                categoryId: category.id,
-                isCompleted: isCurrentTabCompleted,
-              ),
-            ),
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                ActiveTasksView(category: category),
-                CompletedTasksView(category: category),
-              ],
-            ),
-          ),
+          ActiveTasksView(category: category),
+          CompletedTasksView(category: category),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _addTask(context, category),
-        icon: const Icon(Icons.add_rounded),
-        label: const Text('Add Task'),
-      ),
+      bottomNavigationBar: isSelectionMode
+          ? SelectionActionBar(
+              categoryId: category.id,
+              isCompleted: isCurrentTabCompleted,
+            )
+          : null,
+      floatingActionButton: isSelectionMode
+          ? null
+          : FloatingActionButton.extended(
+              onPressed: () => _addTask(context, category),
+              icon: const Icon(Icons.add_rounded),
+              label: const Text('Add Task'),
+            ),
     );
   }
 }
