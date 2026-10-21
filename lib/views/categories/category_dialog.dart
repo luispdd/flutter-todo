@@ -15,6 +15,7 @@ class _CategoryDialogState extends State<CategoryDialog> {
   late final TextEditingController _nameController;
   late int _selectedColor;
   late int _selectedIcon;
+  late bool _isApiSyncEnabled;
   final _formKey = GlobalKey<FormState>();
 
   @override
@@ -23,6 +24,7 @@ class _CategoryDialogState extends State<CategoryDialog> {
     _nameController = TextEditingController(text: widget.category?.name ?? '');
     _selectedColor = widget.category?.colorValue ?? AppTheme.categoryColors.first.value;
     _selectedIcon = widget.category?.iconCodePoint ?? AppTheme.categoryIcons.first.codePoint;
+    _isApiSyncEnabled = widget.category?.isApiSyncEnabled ?? false;
   }
 
   @override
@@ -37,6 +39,7 @@ class _CategoryDialogState extends State<CategoryDialog> {
         'name': _nameController.text.trim(),
         'colorValue': _selectedColor,
         'iconCodePoint': _selectedIcon,
+        'isApiSyncEnabled': _isApiSyncEnabled,
       });
     }
   }
@@ -149,6 +152,21 @@ class _CategoryDialogState extends State<CategoryDialog> {
                       ),
                     );
                   }).toList(),
+                ),
+                const SizedBox(height: 16),
+                const Divider(),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text(
+                    'Activate API sync',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
+                  subtitle: const Text(
+                    'Sync tasks with ESP32 screen appliance (http://screen.local)',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                  value: _isApiSyncEnabled,
+                  onChanged: (val) => setState(() => _isApiSyncEnabled = val),
                 ),
               ],
             ),

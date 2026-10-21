@@ -7,6 +7,7 @@ class Category {
   final int iconCodePoint;
   final int order;
   final DateTime createdAt;
+  final bool isApiSyncEnabled;
 
   const Category({
     required this.id,
@@ -15,6 +16,7 @@ class Category {
     required this.iconCodePoint,
     required this.order,
     required this.createdAt,
+    this.isApiSyncEnabled = false,
   });
 
   static const List<IconData> defaultIcons = [
@@ -46,6 +48,7 @@ class Category {
     int? iconCodePoint,
     int? order,
     DateTime? createdAt,
+    bool? isApiSyncEnabled,
   }) {
     return Category(
       id: id ?? this.id,
@@ -54,6 +57,7 @@ class Category {
       iconCodePoint: iconCodePoint ?? this.iconCodePoint,
       order: order ?? this.order,
       createdAt: createdAt ?? this.createdAt,
+      isApiSyncEnabled: isApiSyncEnabled ?? this.isApiSyncEnabled,
     );
   }
 
@@ -65,6 +69,7 @@ class Category {
       'iconCodePoint': iconCodePoint,
       'order': order,
       'createdAt': createdAt.toIso8601String(),
+      'isApiSyncEnabled': isApiSyncEnabled,
     };
   }
 
@@ -78,6 +83,7 @@ class Category {
       createdAt: json['createdAt'] != null
           ? DateTime.parse(json['createdAt'] as String)
           : DateTime.now(),
+      isApiSyncEnabled: json['isApiSyncEnabled'] as bool? ?? false,
     );
   }
 

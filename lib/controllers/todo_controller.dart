@@ -50,6 +50,15 @@ class TodoController extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<String?> getLastActiveCategoryId() =>
+      _storageService.getLastActiveCategoryId();
+
+  Future<void> setLastActiveCategoryId(String categoryId) =>
+      _storageService.setLastActiveCategoryId(categoryId);
+
+  Future<void> clearLastActiveCategoryId() =>
+      _storageService.clearLastActiveCategoryId();
+
   // --- Category Operations ---
 
   Category? getCategoryById(String id) {
@@ -64,6 +73,7 @@ class TodoController extends ChangeNotifier {
     required String name,
     required int colorValue,
     required int iconCodePoint,
+    bool isApiSyncEnabled = false,
   }) async {
     final nextOrder = _categories.isEmpty
         ? 0
@@ -76,6 +86,7 @@ class TodoController extends ChangeNotifier {
       iconCodePoint: iconCodePoint,
       order: nextOrder,
       createdAt: DateTime.now(),
+      isApiSyncEnabled: isApiSyncEnabled,
     );
 
     _categories.add(category);
@@ -336,6 +347,36 @@ class TodoController extends ChangeNotifier {
 
     _todos.removeWhere((t) => set.contains(t.id));
     set.clear();
+    _normalizeOrders();
+    await _persistAndNotify();
+  }
+
+  Future<void> replaceCategoryTasks({
+    required String categoryId,
+    required List<({String title, bool isCompleted})> tasks,
+  }) async {
+    _todos.removeWhere((t) => t.categoryId == categoryId);
+    _selectedActiveIds.clear();
+    _selectedCompletedIds.clear();
+
+    final now = DateTime.now();
+    int activeOrder = 0;
+    int completedOrder = 0;
+
+    for (final task in tasks) {
+      _todos.add(
+        TodoItem(
+          id: _uuid.v4(),
+          categoryId: categoryId,
+          title: task.title.trim(),
+          isCompleted: task.isCompleted,
+          order: task.isCompleted ? completedOrder++ : activeOrder++,
+          createdAt: now,
+          completedAt: task.isCompleted ? now : null,
+        ),
+      );
+    }
+
     _normalizeOrders();
     await _persistAndNotify();
   }

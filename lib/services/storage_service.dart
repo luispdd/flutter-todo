@@ -8,6 +8,7 @@ import '../models/todo_item.dart';
 
 class StorageService {
   static const String _storageKey = 'flutter_todo_app_data_v1';
+  static const String _activeCategoryKey = 'flutter_todo_last_active_category_id';
   static const _uuid = Uuid();
 
   Future<AppData> loadData() async {
@@ -42,6 +43,36 @@ class StorageService {
       final prefs = await SharedPreferences.getInstance();
       return await prefs.remove(_storageKey);
     } catch (e) {
+      return false;
+    }
+  }
+
+  Future<String?> getLastActiveCategoryId() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getString(_activeCategoryKey);
+    } catch (e) {
+      debugPrint('Error getting last active category id: $e');
+      return null;
+    }
+  }
+
+  Future<bool> setLastActiveCategoryId(String categoryId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return await prefs.setString(_activeCategoryKey, categoryId);
+    } catch (e) {
+      debugPrint('Error setting last active category id: $e');
+      return false;
+    }
+  }
+
+  Future<bool> clearLastActiveCategoryId() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return await prefs.remove(_activeCategoryKey);
+    } catch (e) {
+      debugPrint('Error clearing last active category id: $e');
       return false;
     }
   }

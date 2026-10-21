@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../controllers/todo_controller.dart';
 import '../../models/category.dart';
+import '../../services/screen_api_service.dart';
 import 'active_tasks_view.dart';
 import 'completed_tasks_view.dart';
 import 'selection_action_bar.dart';
@@ -24,12 +25,122 @@ class _CategoryTasksScreenState extends State<CategoryTasksScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<TodoController>().setLastActiveCategoryId(widget.categoryId);
+      }
+    });
   }
 
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  final _screenApiService = ScreenApiService();
+  bool _isSyncing = false;
+
+  Future<void> _pullFromApi(Category category) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Pull from API'),
+        content: const Text(
+          'This will delete all current tasks in this category and replace them with tasks from http://screen.local.\n\nAre you sure you want to proceed?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: FilledButton.styleFrom(backgroundColor: Colors.teal.shade700),
+            child: const Text('Pull & Replace'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _isSyncing = true);
+
+    try {
+      final remoteTasks = await _screenApiService.fetchTasks();
+      final tasksToImport = remoteTasks
+          .map((t) => (title: t.text, isCompleted: t.done))
+          .toList();
+
+      if (!mounted) return;
+      await context.read<TodoController>().replaceCategoryTasks(
+            categoryId: category.id,
+            tasks: tasksToImport,
+          );
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Successfully pulled ${remoteTasks.length} task(s) from screen.',
+          ),
+          backgroundColor: Colors.teal.shade800,
+        ),
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to pull from API: $e'),
+            backgroundColor: Colors.red.shade700,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSyncing = false);
+    }
+  }
+
+  Future<void> _pushToApi(Category category) async {
+    setState(() => _isSyncing = true);
+    final controller = context.read<TodoController>();
+
+    try {
+      final existingTasks = await _screenApiService.fetchTasks();
+      for (final task in existingTasks) {
+        await _screenApiService.deleteTask(task.id);
+      }
+
+      final activeTodos = controller.getActiveTodos(category.id);
+      if (activeTodos.isNotEmpty) {
+        await _screenApiService.createTasks(
+          activeTodos.map((t) => t.title).toList(),
+        );
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Successfully pushed ${activeTodos.length} pending task(s) to screen.',
+            ),
+            backgroundColor: Colors.indigo.shade800,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to push to API: $e'),
+            backgroundColor: Colors.red.shade700,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSyncing = false);
+    }
   }
 
   Future<void> _addTask(BuildContext context, Category category) async {
@@ -69,7 +180,14 @@ class _CategoryTasksScreenState extends State<CategoryTasksScreen>
     final isCurrentTabCompleted = _tabController.index == 1;
     final isSelectionMode = controller.isSelectionActive(isCurrentTabCompleted);
 
-    return Scaffold(
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) {
+          context.read<TodoController>().clearLastActiveCategoryId();
+        }
+      },
+      child: Scaffold(
       appBar: AppBar(
         title: Row(
           children: [
@@ -164,11 +282,62 @@ class _CategoryTasksScreenState extends State<CategoryTasksScreen>
           : null,
       floatingActionButton: isSelectionMode
           ? null
-          : FloatingActionButton.extended(
-              onPressed: () => _addTask(context, category),
-              icon: const Icon(Icons.add_rounded),
-              label: const Text('Add Task'),
-            ),
+          : (category.isApiSyncEnabled
+              ? Wrap(
+                  alignment: WrapAlignment.end,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    FloatingActionButton.extended(
+                      heroTag: 'pull_api_fab',
+                      onPressed: _isSyncing ? null : () => _pullFromApi(category),
+                      icon: _isSyncing
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Icon(Icons.download_rounded, size: 18),
+                      label: const Text('Pull from API'),
+                      backgroundColor: Colors.teal.shade700,
+                      foregroundColor: Colors.white,
+                    ),
+                    FloatingActionButton.extended(
+                      heroTag: 'push_api_fab',
+                      onPressed: _isSyncing ? null : () => _pushToApi(category),
+                      icon: _isSyncing
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Icon(Icons.upload_rounded, size: 18),
+                      label: const Text('Push to API'),
+                      backgroundColor: Colors.indigo.shade700,
+                      foregroundColor: Colors.white,
+                    ),
+                    FloatingActionButton.extended(
+                      heroTag: 'add_task_fab',
+                      onPressed: () => _addTask(context, category),
+                      icon: const Icon(Icons.add_rounded),
+                      label: const Text('Add Task'),
+                    ),
+                  ],
+                )
+              : FloatingActionButton.extended(
+                  heroTag: 'add_task_fab',
+                  onPressed: () => _addTask(context, category),
+                  icon: const Icon(Icons.add_rounded),
+                  label: const Text('Add Task'),
+                )),
+      ),
     );
   }
 }

@@ -100,8 +100,7 @@ class CompletedTasksView extends StatelessWidget {
                           item.title,
                           style: TextStyle(
                             fontSize: 15,
-                            fontWeight: FontWeight.w500,
-                            decoration: TextDecoration.lineThrough,
+                            fontWeight: FontWeight.bold,
                             color: Colors.grey.shade600,
                           ),
                         ),

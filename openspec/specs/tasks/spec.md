@@ -42,9 +42,9 @@ The system SHALL display a bottom action bar whenever one or more items are sele
 - **THEN** a bottom action bar SHALL display two buttons: "Reactivate" (restores selected tasks to active) and "Permanently Delete" (deletes selected tasks permanently).
 
 ### Requirement: Completed Tasks Partition & Navigation
-The system SHALL provide a dedicated Completed Tasks view accessible directly from the category task screen.
+The system SHALL provide a dedicated Completed Tasks view accessible directly from the category task screen, displaying completed task titles with bold typography and without strike-through decoration.
 
 #### Scenario: Viewing completed tasks
 - **GIVEN** a category with completed tasks
 - **WHEN** the user navigates to the Completed Tasks view
-- **THEN** all completed tasks for that category SHALL be displayed in their custom sort order.
+- **THEN** all completed tasks for that category SHALL be displayed in their custom sort order with bold titles and without line-through strike-through decoration.

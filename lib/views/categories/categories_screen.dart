@@ -22,6 +22,33 @@ class CategoriesScreen extends StatefulWidget {
 
 class _CategoriesScreenState extends State<CategoriesScreen> {
   String _searchQuery = '';
+  bool _hasCheckedRestoration = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _restoreActiveCategory());
+  }
+
+  Future<void> _restoreActiveCategory() async {
+    if (_hasCheckedRestoration || !mounted) return;
+    _hasCheckedRestoration = true;
+
+    final controller = context.read<TodoController>();
+    final lastCatId = await controller.getLastActiveCategoryId();
+    if (lastCatId != null && mounted) {
+      final category = controller.getCategoryById(lastCatId);
+      if (category != null) {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => CategoryTasksScreen(categoryId: category.id),
+          ),
+        );
+      } else {
+        await controller.clearLastActiveCategoryId();
+      }
+    }
+  }
 
   Future<void> _addCategory(BuildContext context) async {
     final controller = context.read<TodoController>();
@@ -35,6 +62,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         name: result['name'] as String,
         colorValue: result['colorValue'] as int,
         iconCodePoint: result['iconCodePoint'] as int,
+        isApiSyncEnabled: result['isApiSyncEnabled'] as bool? ?? false,
       );
     }
   }
@@ -51,6 +79,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         name: result['name'] as String,
         colorValue: result['colorValue'] as int,
         iconCodePoint: result['iconCodePoint'] as int,
+        isApiSyncEnabled: result['isApiSyncEnabled'] as bool? ?? category.isApiSyncEnabled,
       );
       await controller.updateCategory(updated);
     }
