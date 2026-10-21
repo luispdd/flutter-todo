@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'mdns_resolver.dart';
 
 class ScreenTaskItem {
   final int id;
@@ -29,48 +30,74 @@ class ScreenApiService {
   final String baseUrl;
   final http.Client _client;
   final Duration timeout;
+  final MdnsResolver _mdnsResolver;
 
   ScreenApiService({
     this.baseUrl = 'http://screen.local',
     http.Client? client,
     this.timeout = const Duration(seconds: 7),
-  }) : _client = client ?? http.Client();
+    MdnsResolver? mdnsResolver,
+  })  : _client = client ?? http.Client(),
+        _mdnsResolver = mdnsResolver ?? MdnsResolver();
 
-  Uri _uri(String path) {
+  Future<Uri> _resolveUri(String path) async {
     final cleanBase = baseUrl.endsWith('/')
         ? baseUrl.substring(0, baseUrl.length - 1)
         : baseUrl;
     final cleanPath = path.startsWith('/') ? path : '/$path';
-    return Uri.parse('$cleanBase$cleanPath');
+    final parsed = Uri.parse('$cleanBase$cleanPath');
+
+    if (parsed.host.endsWith('.local')) {
+      final ip = await _mdnsResolver.resolveHost(parsed.host);
+      return parsed.replace(host: ip);
+    }
+    return parsed;
+  }
+
+  void _invalidateHost() {
+    try {
+      final host = Uri.parse(baseUrl).host;
+      if (host.endsWith('.local')) {
+        _mdnsResolver.invalidate(host);
+      }
+    } catch (_) {}
   }
 
   Future<List<ScreenTaskItem>> fetchTasks() async {
-    final response = await _client
-        .get(_uri('/tasks'))
-        .timeout(timeout);
+    final uri = await _resolveUri('/tasks');
+    try {
+      final response = await _client.get(uri).timeout(timeout);
 
-    if (response.statusCode == 200) {
-      final decoded = jsonDecode(response.body);
-      if (decoded is List) {
-        return decoded
-            .map((item) => ScreenTaskItem.fromJson(item as Map<String, dynamic>))
-            .toList();
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        if (decoded is List) {
+          return decoded
+              .map((item) => ScreenTaskItem.fromJson(item as Map<String, dynamic>))
+              .toList();
+        }
+        return [];
+      } else {
+        throw Exception('Failed to fetch tasks from screen: HTTP ${response.statusCode}');
       }
-      return [];
-    } else {
-      throw Exception('Failed to fetch tasks from screen: HTTP ${response.statusCode}');
+    } catch (e) {
+      _invalidateHost();
+      rethrow;
     }
   }
 
   Future<bool> deleteTask(int id) async {
-    final response = await _client
-        .delete(_uri('/tasks/$id'))
-        .timeout(timeout);
+    final uri = await _resolveUri('/tasks/$id');
+    try {
+      final response = await _client.delete(uri).timeout(timeout);
 
-    if (response.statusCode == 200) {
-      return true;
-    } else {
-      throw Exception('Failed to delete task $id from screen: HTTP ${response.statusCode}');
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        throw Exception('Failed to delete task $id from screen: HTTP ${response.statusCode}');
+      }
+    } catch (e) {
+      _invalidateHost();
+      rethrow;
     }
   }
 
@@ -78,24 +105,30 @@ class ScreenApiService {
     if (texts.isEmpty) return [];
 
     final payload = jsonEncode(texts.map((t) => {'text': t}).toList());
-    final response = await _client
-        .post(
-          _uri('/tasks'),
-          headers: {'Content-Type': 'application/json'},
-          body: payload,
-        )
-        .timeout(timeout);
+    final uri = await _resolveUri('/tasks');
+    try {
+      final response = await _client
+          .post(
+            uri,
+            headers: {'Content-Type': 'application/json'},
+            body: payload,
+          )
+          .timeout(timeout);
 
-    if (response.statusCode == 201 || response.statusCode == 200) {
-      final decoded = jsonDecode(response.body);
-      if (decoded is List) {
-        return decoded
-            .map((item) => ScreenTaskItem.fromJson(item as Map<String, dynamic>))
-            .toList();
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        if (decoded is List) {
+          return decoded
+              .map((item) => ScreenTaskItem.fromJson(item as Map<String, dynamic>))
+              .toList();
+        }
+        return [];
+      } else {
+        throw Exception('Failed to create tasks on screen: HTTP ${response.statusCode}');
       }
-      return [];
-    } else {
-      throw Exception('Failed to create tasks on screen: HTTP ${response.statusCode}');
+    } catch (e) {
+      _invalidateHost();
+      rethrow;
     }
   }
 }

@@ -56,7 +56,8 @@ class CompletedTasksView extends StatelessWidget {
       },
       itemBuilder: (context, index) {
         final item = completedTodos[index];
-        final isSelected = controller.isItemSelected(item.id, isCompleted: true);
+        final isSelected =
+            controller.isItemSelected(item.id, isCompleted: true);
 
         return Card(
           key: ValueKey(item.id),
@@ -101,7 +102,6 @@ class CompletedTasksView extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
-                            color: Colors.grey.shade600,
                           ),
                         ),
                         if (item.completedAt != null) ...[
@@ -126,7 +126,8 @@ class CompletedTasksView extends StatelessWidget {
                   ),
                   IconButton(
                     tooltip: 'Send Back to Active List',
-                    icon: const Icon(Icons.replay_rounded, size: 18, color: Colors.indigo),
+                    icon: const Icon(Icons.replay_rounded,
+                        size: 18, color: Colors.indigo),
                     onPressed: () => controller.toggleTodoComplete(item.id),
                   ),
                   IconButton(
@@ -136,7 +137,8 @@ class CompletedTasksView extends StatelessWidget {
                   ),
                   IconButton(
                     tooltip: 'Delete Permanently',
-                    icon: const Icon(Icons.delete_forever_rounded, size: 18, color: Colors.redAccent),
+                    icon: const Icon(Icons.delete_forever_rounded,
+                        size: 18, color: Colors.redAccent),
                     onPressed: () async {
                       final confirmed = await showDialog<bool>(
                         context: context,
@@ -149,7 +151,8 @@ class CompletedTasksView extends StatelessWidget {
                               child: const Text('Cancel'),
                             ),
                             FilledButton(
-                              style: FilledButton.styleFrom(backgroundColor: Colors.red),
+                              style: FilledButton.styleFrom(
+                                  backgroundColor: Colors.red),
                               onPressed: () => Navigator.of(ctx).pop(true),
                               child: const Text('Delete'),
                             ),
